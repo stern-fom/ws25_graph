@@ -41,12 +41,34 @@ def depth_first_search(graph_param, node):
         dfs_visited.add(node)
         depth_first_search(graph_param, adjacent)
 
+bfs_list = []
+
+def breadth_first_search(graph_param, start_node):
+    current_nodes = [start_node]
+    next_nodes = []
+    output = set()
+    distance = 0
+    if start_node not in output:
+        output.add(start_node)
+        print(start_node, end=", ")
+        bfs_list.append((start_node, distance))
+    while len(current_nodes):
+        distance += 1
+        for node in current_nodes:
+            for adjacent in graph_param[node]:
+                if adjacent not in output:
+                    output.add(adjacent)
+                    bfs_list.append((adjacent, distance))
+                    print(adjacent, end=", ")
+                    next_nodes.append(adjacent)
+        current_nodes = next_nodes
+        next_nodes = []
 
 if __name__ == '__main__':
     depth_first_search(graph, "a")
 
     dot = graphviz.Graph(engine="neato")
-    dot.attr('node', shape='circle')
+    dot.attr('node', shape='circle', style='filled')
 
     for node in graph:
         dot.node(node, label=node)
@@ -68,6 +90,25 @@ if __name__ == '__main__':
     dot.render(filename='out\\graph.dot', format='pdf', view=False)
 
     for i, visited in enumerate(dfs_list):
-        dot.node(visited, label=visited, color='red')
+        dot.node(visited, label=visited, color='red', fillcolor="white")
         print(f"Make node \"{visited}\" red.")
         dot.render(filename=f'out\\graph_{i:02d}', format='png', view=False)
+
+
+    breadth_first_search(graph, "a")
+
+    maximum_steps = max([t[1] for t in bfs_list])
+    color_table = ["#ffffff"]
+    for i in range(1, maximum_steps + 1):
+        # Nichtlineare Interpolation (quadratisch) für Grün und Blau
+        factor = (i / maximum_steps) ** 2
+        green_blue = int(255 * (1 - factor))
+        color_hex = f"#ff{green_blue:02x}{green_blue:02x}"
+        color_table.append(color_hex)
+
+    for i, visited in enumerate(bfs_list):
+        distance = visited[1]
+        color_string = color_table[distance]
+        dot.node(visited[0], fillcolor=color_string)
+        print(f"Fill node \"{visited}\" with color \"{color_string}\".")
+        dot.render(filename=f'out_bfs\\graph_{i:02d}', format='png', view=False)
